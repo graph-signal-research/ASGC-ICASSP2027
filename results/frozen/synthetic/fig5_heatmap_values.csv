@@ -1,0 +1,10 @@
+missingness_mechanism,observation_ratio_percent,E_w_reduction_percent,paired_95_interval_below_zero
+Uniform,40,15.638539131750262,True
+Uniform,55,20.360611388963704,True
+Uniform,70,12.765829636893988,True
+Target-biased,40,14.74326661227152,True
+Target-biased,55,14.914940070901348,True
+Target-biased,70,10.524121005304952,True
+Block,40,-15.938887708748489,False
+Block,55,10.150294028043296,False
+Block,70,21.433533617102555,True

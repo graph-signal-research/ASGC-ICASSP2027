@@ -1,0 +1,5 @@
+Variant,Features,Metric,Value
+BiasOnly,intercept only,E_w,0.081217
+AggregateBasic,"tilde_c_i, o_i, p_i",E_w,0.071538
+ASGC,all eight target-level features,E_w,0.068905
+Residual reassignment,ASGC residuals reassigned across target nodes,E_w,0.095243

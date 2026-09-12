@@ -1,0 +1,36 @@
+experiment: metr_la_heldout_mask_evaluation
+data_dir: data/METR-LA
+frozen_results_dir: results/frozen/metr_la
+output_dir: results/reproduced/metr_la
+matrix_direction: "A[j,i] = j -> i"
+subgraph:
+  node_count: 20
+  sensor_id_sha256: 692779f867902d401354b31816aaf6bbf5d42c57f6a1f056dce9da89a9332bd7
+relation_support:
+  definition: nonzero_offdiagonal_entries
+  directed_edge_count: 147
+development_mask_seeds: [2027101, 2027102, 2027103, 2027104, 2027105]
+heldout_mask_seeds: [2027106, 2027107, 2027108, 2027109, 2027110, 2027111, 2027112, 2027113, 2027114, 2027115]
+observation_ratios: [0.4, 0.7]
+gat:
+  input_dim: 12
+  hidden_per_head: 12
+  heads: 2
+  learning_rate: 0.005
+  weight_decay: 0.0001
+  max_epochs: 300
+  patience: 30
+  min_delta: 1.0e-7
+  internal_validation_fraction: 0.20
+ridge:
+  lambda: 1.0
+aggregation:
+  epsilon: 0.01
+signal_metric:
+  name: metr_la_temporal_l2_deviation
+  definition: "mean over evaluation windows of ||sum_i (w_i-w_i_star) X_i^(t)||_2"
+bootstrap:
+  repetitions: 5000
+temporal_scope:
+  train_fraction: 0.70
+  evaluation_end_fraction: 0.80

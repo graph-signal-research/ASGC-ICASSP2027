@@ -1,0 +1,11 @@
+mask_seed,observation_ratio,fit_validation_overlap,fit_missing_overlap,validation_missing_overlap,partition_support_exact,missing_used_for_training,missing_used_for_early_stopping
+2027101,0.4,0,0,0,True,False,False
+2027101,0.7,0,0,0,True,False,False
+2027102,0.4,0,0,0,True,False,False
+2027102,0.7,0,0,0,True,False,False
+2027103,0.4,0,0,0,True,False,False
+2027103,0.7,0,0,0,True,False,False
+2027104,0.4,0,0,0,True,False,False
+2027104,0.7,0,0,0,True,False,False
+2027105,0.4,0,0,0,True,False,False
+2027105,0.7,0,0,0,True,False,False

@@ -1,0 +1,19 @@
+experiment: synthetic_paper_evaluation
+random_seeds:
+  bootstrap_repetitions: 3000
+ridge:
+  lambda: 1.0
+aggregation:
+  epsilon: 0.01
+features:
+  - tilde_c_i
+  - o_i
+  - p_i
+  - n_i_o
+  - n_i_m
+  - mu_i_o
+  - mu_i_m
+  - sigma_i_m
+projection: [o_i, o_i_plus_n_i_m]
+frozen_results_dir: results/frozen/synthetic
+output_dir: results/reproduced/synthetic
