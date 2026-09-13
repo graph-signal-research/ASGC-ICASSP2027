@@ -15,39 +15,6 @@ A GAT first estimates unobserved directed edges. ASGC then calibrates the
 target-node in-strengths used by normalization while leaving the preliminary
 GAT edge estimates unchanged.
 
-## Key Findings
-
-| Dataset | Observation | Metric | Raw-GAT | ASGC | Relative reduction |
-|---|---:|---|---:|---:|---:|
-| Synthetic | — | `E_c` | 3.7426 | **3.0947** | **17.3%** |
-| Synthetic | — | `E_w` | 0.0777 | **0.0668** | **14.0%** |
-| Synthetic | — | `E_x` | 0.0050 | **0.0043** | **14.4%** |
-| METR-LA | 40% | `E_c` | 9.4705 | **6.0667** | **35.94%** |
-| METR-LA | 40% | `E_w` | 0.1420 | **0.1055** | **25.71%** |
-| METR-LA | 40% | `E_{x,2}^{METR}` | 1.6595 | **1.1774** | **29.05%** |
-| METR-LA | 70% | `E_c` | 5.5269 | **4.6749** | **15.42%** |
-| METR-LA | 70% | `E_w` | 0.0980 | **0.0813** | **17.03%** |
-| METR-LA | 70% | `E_{x,2}^{METR}` | 1.0135 | 1.0918 | n.s. |
-
-Synthetic `E_x` is the channel-weighted L1 fused-signal error used in the
-paper analysis. METR-LA reports the mean temporal L2 signal deviation, denoted
-by `E_{x,2}^{METR}`.
-
-At 70% observation, the paired interval for this temporal signal metric
-includes zero.
-
-### Key observations
-
-Two observations motivate the aggregation-aware design:
-
-- Raw-GAT and ASGC use the same preliminary GAT edge estimates, so their
-  differences in `E_c`, `E_w`, and downstream signal error isolate the effect
-  of in-strength calibration.
-- On the synthetic evaluation, NodeMean achieves the lowest mean missing-edge
-  MAE while producing worse fusion-related errors than ASGC. This illustrates
-  that edge-reconstruction accuracy alone does not determine downstream
-  aggregation quality.
-
 ## Method at a Glance
 
 ```text
@@ -90,19 +57,6 @@ This release provides:
 Raw METR-LA measurements are not redistributed. Data preparation instructions
 are provided in [`docs/DATA.md`](docs/DATA.md).
 
-## Reproducibility Scope
-
-Synthetic paper statistics and experimental figures are recomputed from the
-released scenario-level and figure-source artifacts under
-`results/frozen/synthetic/`. The public synthetic script also verifies the
-shared Raw-GAT/ASGC edge-completion evaluation and provides a lightweight GAT
-forward-path smoke test.
-
-For METR-LA, the repository additionally provides the graph/data processing,
-GAT training and checkpoint loading, ASGC fitting, held-out-mask evaluation,
-paired bootstrap reconstruction, and released held-out GAT checkpoints needed
-to replay the reported results once the public dataset is prepared.
-
 ## Repository Structure
 
 ```text
@@ -122,6 +76,24 @@ results/
 figures/                  paper figures regenerated from released results
 docs/                     data, protocol, checkpoint, and result provenance
 data/METR-LA/             local location for user-prepared METR-LA files
+```
+
+## Installation
+
+### Conda
+
+```bash
+conda env create -f environment.yml
+conda activate asgc
+```
+
+### pip / venv
+
+```bash
+python -m venv .venv
+source .venv/bin/activate          # Linux/macOS
+# .venv\Scripts\activate           # Windows
+python -m pip install -r requirements.txt
 ```
 
 ## Data
@@ -166,23 +138,18 @@ python scripts/evaluate_heldout_masks.py --config configs/metr_la.yaml --smoke-t
 pytest -q
 ```
 
-## Installation
+## Reproducibility Scope
 
-### Conda
+Synthetic paper statistics and experimental figures are recomputed from the
+released scenario-level and figure-source artifacts under
+`results/frozen/synthetic/`. The public synthetic script also verifies the
+shared Raw-GAT/ASGC edge-completion evaluation and provides a lightweight GAT
+forward-path smoke test.
 
-```bash
-conda env create -f environment.yml
-conda activate asgc
-```
-
-### pip / venv
-
-```bash
-python -m venv .venv
-source .venv/bin/activate          # Linux/macOS
-# .venv\Scripts\activate           # Windows
-python -m pip install -r requirements.txt
-```
+For METR-LA, the repository additionally provides the graph/data processing,
+GAT training and checkpoint loading, ASGC fitting, held-out-mask evaluation,
+paired bootstrap reconstruction, and released held-out GAT checkpoints needed
+to replay the reported results once the public dataset is prepared.
 
 ## Reproducing Paper Results
 
@@ -255,15 +222,38 @@ figures/fig5_missingness.{png,pdf}
 The plotting and table scripts read the released CSV artifacts; paper values
 are not embedded in those scripts.
 
-## Runtime and Hardware
+## Key Findings
 
-The released implementation runs on CPU and does not require a GPU. For the
-20-node METR-LA development configuration, a reference CPU-only run of the
-ten GAT trainings (`5` mask seeds × `2` observation ratios) completed in
-approximately 6 seconds with less than 0.5 GB peak memory in the reference
-CPU environment used for this release. Runtime varies across systems. The
-`--smoke-test` options provide lightweight checks of model forward passes,
-masks, metrics, and data plumbing.
+| Dataset | Observation | Metric | Raw-GAT | ASGC | Relative reduction |
+|---|---:|---|---:|---:|---:|
+| Synthetic | — | `E_c` | 3.7426 | **3.0947** | **17.3%** |
+| Synthetic | — | `E_w` | 0.0777 | **0.0668** | **14.0%** |
+| Synthetic | — | `E_x` | 0.0050 | **0.0043** | **14.4%** |
+| METR-LA | 40% | `E_c` | 9.4705 | **6.0667** | **35.94%** |
+| METR-LA | 40% | `E_w` | 0.1420 | **0.1055** | **25.71%** |
+| METR-LA | 40% | `E_{x,2}^{METR}` | 1.6595 | **1.1774** | **29.05%** |
+| METR-LA | 70% | `E_c` | 5.5269 | **4.6749** | **15.42%** |
+| METR-LA | 70% | `E_w` | 0.0980 | **0.0813** | **17.03%** |
+| METR-LA | 70% | `E_{x,2}^{METR}` | 1.0135 | 1.0918 | n.s. |
+
+Synthetic `E_x` is the channel-weighted L1 fused-signal error used in the
+paper analysis. METR-LA reports the mean temporal L2 signal deviation, denoted
+by `E_{x,2}^{METR}`.
+
+At 70% observation, the paired interval for this temporal signal metric
+includes zero.
+
+### Key observations
+
+Two observations motivate the aggregation-aware design:
+
+- Raw-GAT and ASGC use the same preliminary GAT edge estimates, so their
+  differences in `E_c`, `E_w`, and downstream signal error isolate the effect
+  of in-strength calibration.
+- On the synthetic evaluation, NodeMean achieves the lowest mean missing-edge
+  MAE while producing worse fusion-related errors than ASGC. This illustrates
+  that edge-reconstruction accuracy alone does not determine downstream
+  aggregation quality.
 
 ## Experimental Protocol
 
@@ -282,6 +272,16 @@ completion pass. Full details are provided in
 Result-to-file provenance and SHA-256 digests are listed in
 [`docs/RESULT_MANIFEST.md`](docs/RESULT_MANIFEST.md). Reproduction checks are
 summarized in [`docs/REPRODUCIBILITY.md`](docs/REPRODUCIBILITY.md).
+
+## Runtime and Hardware
+
+The released implementation runs on CPU and does not require a GPU. For the
+20-node METR-LA development configuration, a reference CPU-only run of the
+ten GAT trainings (`5` mask seeds × `2` observation ratios) completed in
+approximately 6 seconds with less than 0.5 GB peak memory in the reference
+CPU environment used for this release. Runtime varies across systems. The
+`--smoke-test` options provide lightweight checks of model forward passes,
+masks, metrics, and data plumbing.
 
 ## Citation
 
