@@ -42,14 +42,12 @@ estimates themselves are unchanged by ASGC.
 
 ## Repository at a Glance
 
-This release provides:
+The repository contains:
 
 - implementations of the GAT completion and ASGC calibration components;
-- frozen synthetic and METR-LA result artifacts used for the reported paper
-  results;
+- frozen synthetic and METR-LA result artifacts used in the paper;
 - held-out METR-LA GAT checkpoints;
-- scripts for reproducing Tables 1–2 and Figs. 3–5 from the released
-  artifacts;
+- scripts for reproducing Tables 1–2 and Figs. 3–5 from those artifacts;
 - METR-LA development training and held-out-mask replay code;
 - automated consistency tests;
 - data, experiment, checkpoint, and result-provenance documentation.
@@ -78,6 +76,19 @@ docs/                     data, protocol, checkpoint, and result provenance
 data/METR-LA/             local location for user-prepared METR-LA files
 ```
 
+## Paper-to-Code Map
+
+| Paper component | Implementation |
+|---|---|
+| GAT preliminary edge completion | `src/models/gat.py` |
+| ASGC in-strength calibration | `src/models/asgc.py` |
+| METR-LA loading and graph convention | `src/data/metr_la.py` |
+| METR-LA experiment pipeline | `src/experiments/metr_la.py` |
+| Observation-mask construction | `src/masking.py` |
+| Evaluation metrics | `src/metrics.py` |
+| Table 1–2 reproduction | `scripts/reproduce_tables.py` |
+| Fig. 3–5 reproduction | `scripts/reproduce_figures.py` |
+
 ## Installation
 
 ### Conda
@@ -100,7 +111,7 @@ python -m pip install -r requirements.txt
 
 ### Synthetic experiments
 
-The synthetic release includes scenario-level evaluation records, seed
+The synthetic artifacts include scenario-level evaluation records, seed
 manifests, bootstrap summaries, bound data, observation-ratio results, and
 missingness-pattern results under `results/frozen/synthetic/`. The reporting
 scripts recompute the paper summaries and figures from these records.
@@ -141,14 +152,14 @@ pytest -q
 ## Reproducibility Scope
 
 Synthetic paper statistics and experimental figures are recomputed from the
-released scenario-level and figure-source artifacts under
-`results/frozen/synthetic/`. The public synthetic script also verifies the
+scenario-level and figure-source artifacts under
+`results/frozen/synthetic/`. The synthetic script also verifies the
 shared Raw-GAT/ASGC edge-completion evaluation and provides a lightweight GAT
 forward-path smoke test.
 
 For METR-LA, the repository additionally provides the graph/data processing,
 GAT training and checkpoint loading, ASGC fitting, held-out-mask evaluation,
-paired bootstrap reconstruction, and released held-out GAT checkpoints needed
+paired bootstrap reconstruction, and held-out GAT checkpoints needed
 to replay the reported results once the public dataset is prepared.
 
 ## Reproducing Paper Results
@@ -159,7 +170,7 @@ to replay the reported results once the public dataset is prepared.
 python scripts/run_synthetic.py --config configs/synthetic.yaml
 ```
 
-This command recomputes the Table 1 summary statistics from the released
+This command recomputes the Table 1 summary statistics from the stored
 per-scenario records and verifies that Raw-GAT and ASGC have identical
 missing-edge MAE in every scenario.
 
@@ -173,8 +184,8 @@ python scripts/run_metr_la_development.py --config configs/metr_la.yaml
 ```
 
 The development run trains the GAT models for seeds `2027101–2027105` at both
-observation levels, refits the final ASGC StandardScaler/Ridge model, and
-numerically checks its parameters against the released model.
+observation levels, refits the fixed ASGC StandardScaler/Ridge model, and
+numerically checks its parameters against the stored model.
 
 ### METR-LA held-out-mask evaluation
 
@@ -184,7 +195,7 @@ python scripts/evaluate_heldout_masks.py --config configs/metr_la.yaml
 
 This command evaluates the fixed ASGC model on seeds `2027106–2027115` and
 checks the replayed per-mask metrics, Table 2 summary statistics, and paired
-bootstrap intervals against the released artifacts.
+bootstrap intervals against the stored artifacts.
 
 ### Table 1 and Table 2
 
@@ -219,8 +230,17 @@ figures/fig4_observation_ratio.{png,pdf}
 figures/fig5_missingness.{png,pdf}
 ```
 
-The plotting and table scripts read the released CSV artifacts; paper values
+The plotting and table scripts read the stored CSV artifacts; paper values
 are not embedded in those scripts.
+
+## Metrics
+
+- `E_c`: graph-level L1 error of target-node in-strengths.
+- `E_w`: L1 error between normalized aggregation-weight vectors.
+- `E_x`: channel-weighted L1 fused-signal error used in the synthetic experiments.
+- `E_{x,2}^{METR}`: mean temporal L2 signal deviation over METR-LA evaluation windows.
+
+Lower values indicate better performance for all reported error metrics.
 
 ## Key Findings
 
@@ -275,11 +295,11 @@ summarized in [`docs/REPRODUCIBILITY.md`](docs/REPRODUCIBILITY.md).
 
 ## Runtime and Hardware
 
-The released implementation runs on CPU and does not require a GPU. For the
+The implementation runs on CPU and does not require a GPU. For the
 20-node METR-LA development configuration, a reference CPU-only run of the
 ten GAT trainings (`5` mask seeds × `2` observation ratios) completed in
-approximately 6 seconds with less than 0.5 GB peak memory in the reference
-CPU environment used for this release. Runtime varies across systems. The
+approximately 6 seconds with less than 0.5 GB peak memory in the
+reference CPU environment. Runtime varies across systems. The
 `--smoke-test` options provide lightweight checks of model forward passes,
 masks, metrics, and data plumbing.
 
