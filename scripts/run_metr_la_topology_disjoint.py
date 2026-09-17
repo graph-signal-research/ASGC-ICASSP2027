@@ -22,7 +22,13 @@ if str(ROOT) not in sys.path:
 
 from src.data.metr_la import load_metr_la_graph, read_development_prefix
 from src.models.gat import DenseGAT
-from src.models.asgc import normalized_weights, project_in_strength
+from src.models.asgc import in_strength_features, project_in_strength
+from src.metrics import (
+    in_strength_error,
+    metr_la_temporal_l2_signal_errors,
+    missing_edge_mae,
+    weight_error,
+)
 from src.utils import stable_seed
 
 
@@ -306,25 +312,7 @@ def candidate_features(visible_truth, observed, completed):
         raise RuntimeError('Observed labels unavailable for ASGC features')
     if np.any(np.isfinite(visible_truth[missing])):
         raise RuntimeError('Hidden labels exposed to ASGC features')
-    observed_values = np.zeros_like(visible_truth, float)
-    observed_values[observed] = visible_truth[observed]
-    observed_mass = observed_values.sum(axis=0)
-    predicted_mass = np.sum(np.where(missing, completed, 0.0), axis=0)
-    raw_total = observed_mass + predicted_mass
-    observed_count = observed.sum(axis=0).astype(float)
-    missing_count = missing.sum(axis=0).astype(float)
-    observed_mean = observed_mass / np.maximum(observed_count, 1.0)
-    missing_mean = predicted_mass / np.maximum(missing_count, 1.0)
-    missing_std = np.asarray([
-        np.std(completed[:, j][missing[:, j]]) if np.any(missing[:, j]) else 0.0
-        for j in range(n)
-    ])
-    x = np.column_stack([
-        raw_total, observed_mass, predicted_mass,
-        observed_count, missing_count,
-        observed_mean, missing_mean, missing_std,
-    ])
-    return {'x': x, 'raw_total': raw_total, 'missing': missing}
+    return in_strength_features(visible_truth, observed, missing, completed)
 
 
 @dataclass
@@ -349,24 +337,10 @@ def fit_calibrator(scenarios, keys, alpha):
     return Calibrator(scaler, ridge, alpha)
 
 
-def in_strength_error(c_hat, c_star):
-    return float(np.abs(np.asarray(c_hat) - np.asarray(c_star)).sum())
-
-
-def weight_error(c_hat, c_star):
-    return float(np.abs(normalized_weights(c_hat, EPSILON) - normalized_weights(c_star, EPSILON)).sum())
-
-
-def temporal_l2(c_hat, c_star, windows):
-    delta = normalized_weights(c_hat, EPSILON) - normalized_weights(c_star, EPSILON)
-    td = np.einsum('i,tij->tj', delta, windows)
-    return float(np.linalg.norm(td, axis=1).mean())
-
-
 def edge_metrics(completed, truth, missing):
-    ea_all = float(np.abs(completed[missing] - truth[missing]).mean())
+    ea_all = missing_edge_mae(completed, truth, missing)
     pos = missing & (truth > 0)
-    ea_pos = float(np.abs(completed[pos] - truth[pos]).mean()) if np.any(pos) else float('nan')
+    ea_pos = missing_edge_mae(completed, truth, pos) if np.any(pos) else float('nan')
     return ea_all, ea_pos, int(pos.sum())
 
 
@@ -502,7 +476,11 @@ def evaluate_test(graphs, test_scenarios, calibrator, out_dir):
                 'hidden_positive_count': npos,
                 'E_c': in_strength_error(c_hat, true),
                 'E_w': weight_error(c_hat, true),
-                'E_x2_METR': temporal_l2(c_hat, true, g['windows']),
+                'E_x2_METR': float(
+                    metr_la_temporal_l2_signal_errors(
+                        c_hat, true, g['windows'], EPSILON
+                    ).mean()
+                ),
             })
     metrics = pd.DataFrame(rows)
     metrics.to_csv(out_dir / 'test_scenario_metrics.csv', index=False)
@@ -560,6 +538,71 @@ def summarize(metrics, out_dir):
             })
     boot = pd.DataFrame(boot_rows)
     boot.to_csv(out_dir / 'graph_cluster_bootstrap.csv', index=False)
+
+    signflip_rows = []
+    reduction_rows = []
+    for ratio in OBS_RATIOS:
+        sub = metrics[metrics.observation_ratio == ratio]
+        for metric in ['E_c', 'E_w', 'E_x2_METR']:
+            pivot = sub.pivot_table(
+                index=['graph_id', 'mask_rep'], columns='Method', values=metric
+            ).reset_index()
+            pivot['diff'] = pivot['ASGC'] - pivot['Raw-GAT']
+            graph_diff = (
+                pivot.groupby('graph_id')['diff']
+                .mean()
+                .sort_index()
+                .to_numpy(float)
+            )
+            if len(graph_diff) != 6:
+                raise RuntimeError('Exact sign-flip requires six test graphs')
+            signs = np.asarray(
+                [
+                    [1.0 if (bits >> j) & 1 else -1.0 for j in range(6)]
+                    for bits in range(2**6)
+                ]
+            )
+            permuted_means = np.mean(signs * graph_diff[None, :], axis=1)
+            observed_mean = float(np.mean(graph_diff))
+            tolerance = 1.0e-15
+            two_sided = float(
+                np.mean(
+                    np.abs(permuted_means)
+                    >= abs(observed_mean) - tolerance
+                )
+            )
+            one_sided = float(
+                np.mean(permuted_means <= observed_mean + tolerance)
+            )
+            signflip_rows.append({
+                'observation_ratio': ratio,
+                'metric': metric,
+                'unit': 'test_graph',
+                'test_graph_count': len(graph_diff),
+                'observed_mean_difference_ASGC_minus_Raw': observed_mean,
+                'exact_two_sided_signflip_p': two_sided,
+                'exact_one_sided_ASGC_lower_p': one_sided,
+                'graphs_improved': int(np.sum(graph_diff < 0)),
+                'total_sign_patterns': len(permuted_means),
+            })
+
+            raw_mean = float(sub[sub.Method == 'Raw-GAT'][metric].mean())
+            asgc_mean = float(sub[sub.Method == 'ASGC'][metric].mean())
+            reduction_rows.append({
+                'observation_ratio': ratio,
+                'metric': metric,
+                'Raw-GAT': raw_mean,
+                'ASGC': asgc_mean,
+                'relative_reduction_percent':
+                    100.0 * (raw_mean - asgc_mean) / raw_mean,
+            })
+
+    pd.DataFrame(signflip_rows).to_csv(
+        out_dir / 'graph_exact_signflip.csv', index=False
+    )
+    pd.DataFrame(reduction_rows).to_csv(
+        out_dir / 'asgc_relative_reductions.csv', index=False
+    )
     return summary, boot
 
 
@@ -609,7 +652,7 @@ def main():
         'mask_repetitions_per_graph': len(MASK_REPS),
         'observation_ratios': OBS_RATIOS,
         'test_scenario_count': len(TEST_GROUPS) * len(MASK_REPS) * len(OBS_RATIOS),
-        'gat_training': 'graph-specific for every graph/mask/ratio; all observed candidates in loss; only observed positive edges in message passing',
+        'gat_training': 'graph-specific for every graph/mask/ratio; fit-observed candidates enter the training loss; validation-observed candidates enter validation loss; only observed positive relations are used for message passing',
         'calibration_training': 'development graphs only; test scenarios do not store c_star during GAT/calibration input construction',
         'lambda_grid': LAMBDA_GRID,
         'lambda_selection': 'leave-one-development-graph-out CV minimizing mean E_w; expanded grid to verify boundary optimum',

@@ -10,7 +10,7 @@ def missing_edge_mae(
     truth: np.ndarray,
     missing: np.ndarray,
 ) -> float:
-    """Mean absolute error on unobserved support edges."""
+    """Mean absolute error on masked candidate pairs."""
     if not np.any(missing):
         return 0.0
     return float(

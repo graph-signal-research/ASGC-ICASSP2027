@@ -19,18 +19,38 @@ FEATURE_NAMES = (
 
 
 def in_strength_features(
-    truth: np.ndarray,
-    support: np.ndarray,
+    observed_labels: np.ndarray,
     observed: np.ndarray,
+    missing: np.ndarray,
     completed: np.ndarray,
 ) -> dict[str, np.ndarray]:
-    """Build the eight target-node statistics from [source, target] matrices."""
-    missing = support & ~observed
+    """Build ASGC features using only observable candidate-pair quantities.
 
-    observed_mass = np.sum(np.where(observed, truth, 0.0), axis=0)
+    Matrices use the convention ``[source, target]``. ``observed_labels`` may
+    contain placeholders (for example NaN) outside ``observed``; those entries
+    are never read. ``missing`` defines the candidate pairs supplied by the
+    completion model and is independent of the unknown ground-truth support.
+    """
+    observed_labels = np.asarray(observed_labels, float)
+    observed = np.asarray(observed, bool)
+    missing = np.asarray(missing, bool)
+    completed = np.asarray(completed, float)
+    if not (
+        observed_labels.shape == observed.shape == missing.shape == completed.shape
+    ):
+        raise ValueError('ASGC feature matrices must have identical shapes')
+    if observed_labels.ndim != 2 or observed_labels.shape[0] != observed_labels.shape[1]:
+        raise ValueError('ASGC feature matrices must be square')
+    if np.any(observed & missing):
+        raise ValueError('Observed and missing candidate masks must be disjoint')
+    if np.any(~np.isfinite(observed_labels[observed])):
+        raise ValueError('Observed candidate labels must be finite')
+    if np.any(~np.isfinite(completed[missing])):
+        raise ValueError('Predicted missing-candidate values must be finite')
+
+    observed_mass = np.sum(np.where(observed, observed_labels, 0.0), axis=0)
     predicted_mass = np.sum(np.where(missing, completed, 0.0), axis=0)
     preliminary_total = observed_mass + predicted_mass
-    true_total = np.sum(np.where(support, truth, 0.0), axis=0)
 
     observed_count = observed.sum(axis=0).astype(float)
     missing_count = missing.sum(axis=0).astype(float)
@@ -42,7 +62,7 @@ def in_strength_features(
             np.std(completed[:, j][missing[:, j]])
             if np.any(missing[:, j])
             else 0.0
-            for j in range(truth.shape[0])
+            for j in range(observed_labels.shape[0])
         ]
     )
 
@@ -61,7 +81,6 @@ def in_strength_features(
     return {
         'x': features,
         'raw_total': preliminary_total,
-        'true_total': true_total,
         'observed': observed,
         'missing': missing,
     }

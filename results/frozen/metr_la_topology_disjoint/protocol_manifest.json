@@ -37,7 +37,7 @@
     0.7
   ],
   "test_scenario_count": 24,
-  "gat_training": "graph-specific for every graph/mask/ratio; all observed candidates in loss; only observed positive edges in message passing",
+  "gat_training": "graph-specific for every graph/mask/ratio; fit-observed candidates enter the training loss; validation-observed candidates enter validation loss; only observed positive relations are used for message passing",
   "calibration_training": "development graphs only; test scenarios do not store c_star during GAT/calibration input construction",
   "lambda_grid": [
     0.01,
@@ -53,7 +53,7 @@
   "temporal_manifest": {
     "source_hdf_file_size_bytes": 57038056,
     "train_stop_index_exclusive": 23990,
-    "validation_stop_index_exclusive": 27417,
+    "evaluation_stop_index_exclusive": 27417,
     "rows_loaded": 27417
   },
   "selected_lambda": 100.0,

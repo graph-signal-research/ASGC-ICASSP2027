@@ -75,7 +75,7 @@ def read_development_prefix(
     manifest = {
         'source_hdf_file_size_bytes': h5_path.stat().st_size,
         'train_stop_index_exclusive': train_end,
-        'validation_stop_index_exclusive': evaluation_end,
+        'evaluation_stop_index_exclusive': evaluation_end,
         'rows_loaded': evaluation_end,
     }
     return prefix, manifest
