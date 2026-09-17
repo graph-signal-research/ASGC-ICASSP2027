@@ -1,0 +1,7 @@
+observation_ratio,metric,unit,test_graph_count,observed_mean_difference_ASGC_minus_Raw,exact_two_sided_signflip_p,exact_one_sided_ASGC_lower_p,graphs_improved,total_sign_patterns
+0.4,E_c,test_graph,6,-5.216481207949505,0.0625,0.03125,5,64
+0.4,E_w,test_graph,6,-0.15005075920871258,0.03125,0.015625,6,64
+0.4,E_x2_METR,test_graph,6,-1.9733874484269416,0.03125,0.015625,6,64
+0.7,E_c,test_graph,6,-0.8661349055721889,0.5,0.25,3,64
+0.7,E_w,test_graph,6,-0.04621824335012372,0.03125,0.015625,6,64
+0.7,E_x2_METR,test_graph,6,-0.8362841926728777,0.03125,0.015625,6,64

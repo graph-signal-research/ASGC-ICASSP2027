@@ -1,32 +1,61 @@
-# Data protocol
+# Data
+
+## Synthetic experiments
+
+Synthetic paper artifacts are included under `results/frozen/synthetic/` and do not require external data.
 
 ## METR-LA
 
-The repository does not redistribute `metr-la.h5`. Obtain METR-LA from the original DCRNN data release and place the required files under `data/METR-LA/`.
+Raw METR-LA measurements are not redistributed. Prepare the public DCRNN/METR-LA files under `data/METR-LA/`:
 
-Original DCRNN source: https://github.com/liyaguang/DCRNN
+```text
+adj_mx.pkl
+distances_la_2012.csv
+graph_sensor_ids.txt
+graph_sensor_locations.csv
+metr-la.h5
+```
 
-Required files: `metr-la.h5`, `adj_mx.pkl`, `graph_sensor_ids.txt`, `distances_la_2012.csv`, `graph_sensor_locations.csv`.
+The helper script downloads and SHA-256 verifies the four sensor-graph files:
 
-### Direction
+```bash
+python scripts/download_metr_la.py --config configs/metr_la.yaml
+python scripts/download_metr_la.py --config configs/metr_la.yaml \
+    --metr-h5 /path/to/metr-la.h5
+```
 
-The official adjacency is used directly: `A_paper = adj_mx.copy()`, then self-loops are removed. No transpose is performed. In paper notation, `A[j,i] = j -> i`, and target-node in-strength is `c = A.T @ ones(N)`.
-
-### Fixed 20 sensors
-
-The ordered IDs are stored in `results/frozen/metr_la/development/selected_sensor_ids.txt`; SHA-256 is `692779f867902d401354b31816aaf6bbf5d42c57f6a1f056dce9da89a9332bd7`. The resulting subgraph contains 147 nonzero directed, non-self candidate relations. Observation masks are sampled only within this fixed candidate support; zero entries are not treated as missing links.
-
-### Reference file hashes
-
-The download helper verifies the four DCRNN sensor-graph files against the SHA-256 values used in this release:
+Reference SHA-256 values:
 
 - `adj_mx.pkl`: `a35687c6e15aa228dc45027b0ed2a0ea0f4ec78f573deb992c595092d12f61b3`
 - `distances_la_2012.csv`: `a576a2a3e28dbb959be6da22688e24dd1b246b81264595e129147c256cd53de5`
 - `graph_sensor_ids.txt`: `3ba026caa2e6263ab0ea54b0fa1b125dbfa7216544cd05313b555e826292b990`
 - `graph_sensor_locations.csv`: `eb8ea96e07358b45d0e4ba3b89c2673fa20c54af50150249e627389e749ade6f`
 
-The reference `metr-la.h5` used for the reported runs has shape `34272 x 207`. The loader validates the sensor ordering, dimensions, and five-minute timestamp spacing.
+The reference `metr-la.h5` used for the reported run has SHA-256
+`64784b76d6fb8ec9bff4b6decafb354da2bb37840468fdccee5044e511277c05`
+and shape `34272 x 207`.
+
+### Matrix convention
+
+The official adjacency is used without transposition after removing self-loops:
+
+```text
+A[j,i] = j -> i
+c = A.T @ ones(N)
+```
+
+### Node-disjoint split
+
+The paper experiment fixes ten 20-sensor subsets from `graph_sensor_locations.csv` only, using deterministic 16-bit Morton/Z-order grouping. The split is fixed before `adj_mx.pkl` is loaded. Groups `0,3,6,9` are development subsets and groups `1,2,4,5,7,8` are test subsets. All ten subsets are mutually node-disjoint; seven sensors remain unused.
+
+Each subset uses every directed non-self pair as a candidate relation, giving `20 x 19 = 380` candidates independently of the reference adjacency. Candidate support therefore does not expose which test pairs have positive reference weight.
 
 ### Temporal protocol
 
-The public evaluation reader loads the first 80% of the time series: the first 70% provides training-side preprocessing statistics and the following 10% provides temporal evaluation windows.
+The experiment reads only the first 80% of the speed series:
+
+- first 70%: training-side imputation statistics and 12-dimensional node descriptors;
+- next 10%: 12-step windows ending at evaluation timestamps, used only for the temporal fusion metric;
+- final 20%: outside the evaluation reader.
+
+All imputation statistics and descriptor standardization are fit from the first 70% only.

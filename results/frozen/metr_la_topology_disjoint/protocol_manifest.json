@@ -1,0 +1,61 @@
+{
+  "rule": "16-bit Morton/Z-order of (longitude, latitude), tie-break sensor_id; consecutive groups of 20",
+  "uses_adjacency_for_split": false,
+  "group_count": 10,
+  "group_size": 20,
+  "development_group_ids": [
+    0,
+    3,
+    6,
+    9
+  ],
+  "test_group_ids": [
+    1,
+    2,
+    4,
+    5,
+    7,
+    8
+  ],
+  "unused_sensor_ids": [
+    "769926",
+    "769867",
+    "769847",
+    "769941",
+    "769831",
+    "769953",
+    "769819"
+  ],
+  "split_sha256": "7e9c1c4b717e9845486c457612c4cb557260e8b851c33830ad45b8c7367665ed",
+  "candidate_rule": "all directed non-self node pairs (20*19=380)",
+  "candidate_rule_uses_truth": false,
+  "development_graphs": 4,
+  "test_graphs": 6,
+  "mask_repetitions_per_graph": 2,
+  "observation_ratios": [
+    0.4,
+    0.7
+  ],
+  "test_scenario_count": 24,
+  "gat_training": "graph-specific for every graph/mask/ratio; all observed candidates in loss; only observed positive edges in message passing",
+  "calibration_training": "development graphs only; test scenarios do not store c_star during GAT/calibration input construction",
+  "lambda_grid": [
+    0.01,
+    0.1,
+    1.0,
+    10.0,
+    100.0,
+    1000.0,
+    10000.0
+  ],
+  "lambda_selection": "leave-one-development-graph-out CV minimizing mean E_w; expanded grid to verify boundary optimum",
+  "signal_scope": "0-70% node descriptors; 70-80% temporal fusion evaluation only",
+  "temporal_manifest": {
+    "source_hdf_file_size_bytes": 57038056,
+    "train_stop_index_exclusive": 23990,
+    "validation_stop_index_exclusive": 27417,
+    "rows_loaded": 27417
+  },
+  "selected_lambda": 100.0,
+  "raw_asgc_share_same_completion": true
+}

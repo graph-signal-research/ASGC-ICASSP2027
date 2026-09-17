@@ -1,9 +1,9 @@
 | Obs. | Method | $E_c$ | $E_w$ | $E_{x,2}^{\mathrm{METR}}$ |
 |---:|---|---:|---:|---:|
-| 40% | Raw-GAT | 9.4705 ± 2.8644 | 0.1420 ± 0.0473 | 1.6595 ± 1.1192 |
-| 40% | ASGC | 6.0667 ± 1.1407* | 0.1055 ± 0.0194* | 1.1774 ± 0.3626* |
-| 70% | Raw-GAT | 5.5269 ± 1.1020 | 0.0980 ± 0.0178 | 1.0135 ± 0.4994 |
-| 70% | ASGC | 4.6749 ± 0.5916* | 0.0813 ± 0.0107* | 1.0918 ± 0.2427 |
+| 40% | Raw-GAT | 20.0814 | 0.5321 | 4.8785 |
+| 40% | ASGC | 14.8649 | 0.3821* | 2.9051* |
+| 70% | Raw-GAT | 10.7365 | 0.3037 | 2.8202 |
+| 70% | ASGC | 9.8704 | 0.2575* | 1.9839* |
 
-* Paired 95% bootstrap confidence interval for ASGC minus Raw-GAT lies below zero.
-$E_{x,2}^{\mathrm{METR}}$ is the mean per-window temporal $\ell_2$ deviation used by the METR-LA protocol; it is distinct from the weighted-$\ell_1$ synthetic $E_x$ in Eq. (3).
+* Exact two-sided graph-level paired sign-flip p < 0.05 after averaging two masks within each test graph.
+$E_{x,2}^{\mathrm{METR}}$ is the mean per-window temporal $\ell_2$ fused-signal deviation.

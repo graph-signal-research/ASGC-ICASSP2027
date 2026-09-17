@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from src.utils import REPO_ROOT, sensor_id_hash
+from src.utils import REPO_ROOT
 
 
 def test_synthetic_summary_matches_scenario_level_results():
@@ -70,49 +70,57 @@ def test_block_70_value():
     assert round(value, 1) == 21.4
 
 
-def test_metr_heldout_summary_exact():
+def test_metr_node_disjoint_table2_values():
     data = pd.read_csv(
         REPO_ROOT
-        / 'results/frozen/metr_la/heldout_masks/heldout_10_seed_summary.csv'
+        / 'results/frozen/metr_la_topology_disjoint/test_summary.csv'
     )
 
-    def get(ratio, metric):
-        return data[
+    def get(ratio, method, metric):
+        return float(
+            data[
+                (data.observation_ratio == ratio)
+                & (data.Method == method)
+                & (data.metric == metric)
+            ].iloc[0]['mean']
+        )
+
+    assert round(get(0.4, 'Raw-GAT', 'E_c'), 4) == 20.0814
+    assert round(get(0.4, 'ASGC', 'E_c'), 4) == 14.8649
+    assert round(get(0.4, 'ASGC', 'E_w'), 4) == 0.3821
+    assert round(get(0.4, 'ASGC', 'E_x2_METR'), 4) == 2.9051
+    assert round(get(0.7, 'ASGC', 'E_c'), 4) == 9.8704
+    assert round(get(0.7, 'ASGC', 'E_w'), 4) == 0.2575
+    assert round(get(0.7, 'ASGC', 'E_x2_METR'), 4) == 1.9839
+
+
+def test_metr_node_disjoint_signflip():
+    data = pd.read_csv(
+        REPO_ROOT
+        / 'results/frozen/metr_la_topology_disjoint/graph_exact_signflip.csv'
+    )
+
+    def p(ratio, metric):
+        row = data[
             (data.observation_ratio == ratio) & (data.metric == metric)
         ].iloc[0]
+        return float(row.exact_two_sided_signflip_p), int(row.graphs_improved)
 
-    assert round(get(0.4, 'E_c')['ASGC_mean'], 4) == 6.0667
-    assert round(get(0.7, 'E_w')['ASGC_mean'], 4) == 0.0813
-    assert (
-        round(
-            get(0.4, 'E_x')['ASGC_improvement_percent_vs_Raw-GAT'],
-            2,
-        )
-        == 29.05
-    )
+    assert p(0.4, 'E_c') == (0.0625, 5)
+    assert p(0.4, 'E_w') == (0.03125, 6)
+    assert p(0.4, 'E_x2_METR') == (0.03125, 6)
+    assert p(0.7, 'E_c') == (0.5, 3)
+    assert p(0.7, 'E_w') == (0.03125, 6)
+    assert p(0.7, 'E_x2_METR') == (0.03125, 6)
 
 
-def test_metr_significance_source_is_well_formed():
+def test_raw_and_asgc_share_edge_metrics_per_scenario():
     data = pd.read_csv(
         REPO_ROOT
-        / 'results/frozen/metr_la/heldout_masks/heldout_10_seed_bootstrap.csv'
+        / 'results/frozen/metr_la_topology_disjoint/test_scenario_metrics.csv'
     )
-    assert {
-        'observation_ratio',
-        'metric',
-        '95% CI lower',
-        '95% CI upper',
-    }.issubset(data.columns)
-    assert np.isfinite(
-        data[['95% CI lower', '95% CI upper']].to_numpy()
-    ).all()
-
-
-def test_sensor_hash():
-    ids = (
-        REPO_ROOT
-        / 'results/frozen/metr_la/development/selected_sensor_ids.txt'
-    ).read_text().splitlines()
-    assert sensor_id_hash(ids) == (
-        '692779f867902d401354b31816aaf6bbf5d42c57f6a1f056dce9da89a9332bd7'
-    )
+    keys = ['graph_id', 'mask_rep', 'observation_ratio']
+    pivot_all = data.pivot(index=keys, columns='Method', values='E_a_all')
+    pivot_pos = data.pivot(index=keys, columns='Method', values='E_a_positive')
+    assert np.array_equal(pivot_all['Raw-GAT'].to_numpy(), pivot_all['ASGC'].to_numpy())
+    assert np.array_equal(pivot_pos['Raw-GAT'].to_numpy(), pivot_pos['ASGC'].to_numpy())

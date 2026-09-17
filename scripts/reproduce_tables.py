@@ -51,11 +51,16 @@ def synthetic_table(config: dict) -> pd.DataFrame:
 
 
 def metr_la_table(config: dict) -> pd.DataFrame:
-    """Build paper Table 2 from the ten held-out METR-LA masks."""
-    source = ROOT / config['frozen_results_dir'] / 'heldout_masks'
-    summary = pd.read_csv(source / 'heldout_10_seed_summary.csv')
-    bootstrap = pd.read_csv(source / 'heldout_10_seed_bootstrap.csv')
+    """Build paper Table 2 from node-disjoint METR-LA summaries."""
+    source = ROOT / config['frozen_results_dir']
+    summary = pd.read_csv(source / 'test_summary.csv')
+    signflip = pd.read_csv(source / 'graph_exact_signflip.csv')
 
+    metric_map = {
+        'E_c': 'E_c',
+        'E_w': 'E_w',
+        'E_x': 'E_x2_METR',
+    }
     rows = []
     for ratio in (0.4, 0.7):
         for method in METR_METHODS:
@@ -63,25 +68,26 @@ def metr_la_table(config: dict) -> pd.DataFrame:
                 'Observation': int(round(100 * ratio)),
                 'Method': method,
             }
-            for metric in METRICS:
+            for output_metric, source_metric in metric_map.items():
                 result = summary[
                     (summary['observation_ratio'] == ratio)
-                    & (summary['metric'] == metric)
+                    & (summary['Method'] == method)
+                    & (summary['metric'] == source_metric)
                 ].iloc[0]
-                row[f'{metric}_mean'] = float(result[f'{method}_mean'])
-                row[f'{metric}_std'] = float(result[f'{method}_std'])
+                row[f'{output_metric}_mean'] = float(result['mean'])
 
                 significant = False
                 if method == 'ASGC':
-                    paired = bootstrap[
-                        (bootstrap['observation_ratio'] == ratio)
-                        & (bootstrap['metric'] == metric)
+                    paired = signflip[
+                        (signflip['observation_ratio'] == ratio)
+                        & (signflip['metric'] == source_metric)
                     ].iloc[0]
-                    significant = bool(paired['95% CI upper'] < 0)
-                row[f'{metric}_significant'] = significant
+                    significant = bool(
+                        float(paired['exact_two_sided_signflip_p']) < 0.05
+                    )
+                row[f'{output_metric}_significant'] = significant
             rows.append(row)
     return pd.DataFrame(rows)
-
 
 def synthetic_markdown(table: pd.DataFrame) -> str:
     """Format Table 1 as Markdown."""
@@ -109,7 +115,7 @@ def synthetic_markdown(table: pd.DataFrame) -> str:
 
 
 def metr_la_markdown(table: pd.DataFrame) -> str:
-    """Format Table 2 as Markdown."""
+    """Format paper Table 2 as Markdown."""
     lines = [
         '| Obs. | Method | $E_c$ | $E_w$ | $E_{x,2}^{\\mathrm{METR}}$ |',
         '|---:|---|---:|---:|---:|',
@@ -117,10 +123,7 @@ def metr_la_markdown(table: pd.DataFrame) -> str:
     for _, row in table.iterrows():
         cells = []
         for metric in METRICS:
-            value = (
-                f"{row[f'{metric}_mean']:.4f} ± "
-                f"{row[f'{metric}_std']:.4f}"
-            )
+            value = f"{row[f'{metric}_mean']:.4f}"
             if bool(row[f'{metric}_significant']):
                 value += '*'
             cells.append(value)
@@ -133,15 +136,13 @@ def metr_la_markdown(table: pd.DataFrame) -> str:
     lines.extend(
         [
             '',
-            '* Paired 95% bootstrap confidence interval for ASGC minus '
-            'Raw-GAT lies below zero.',
+            '* Exact two-sided graph-level paired sign-flip p < 0.05 after '
+            'averaging two masks within each test graph.',
             '$E_{x,2}^{\\mathrm{METR}}$ is the mean per-window temporal '
-            '$\\ell_2$ deviation used by the METR-LA protocol; it is '
-            'distinct from the weighted-$\\ell_1$ synthetic $E_x$ in Eq. (3).',
+            '$\\ell_2$ fused-signal deviation.',
         ]
     )
     return '\n'.join(lines) + '\n'
-
 
 def latex_value(row: pd.Series, metric: str) -> str:
     """Format one synthetic metric cell for LaTeX."""
@@ -176,17 +177,13 @@ def write_latex_table2(table: pd.DataFrame, path: Path) -> None:
     lines = [
         '\\begin{tabular}{clccc}',
         '\\toprule',
-        'Obs. & Method & $E_c$ & $E_w$ & '
-        '$E_{x,2}^{\\mathrm{METR}}$\\\\',
+        'Obs. & Method & $E_c$ & $E_w$ & $E_{x,2}^{\\mathrm{METR}}$\\\\',
         '\\midrule',
     ]
     for _, row in table.iterrows():
         cells = []
         for metric in METRICS:
-            value = (
-                f"{row[f'{metric}_mean']:.4f} $\\pm$ "
-                f"{row[f'{metric}_std']:.4f}"
-            )
+            value = f"{row[f'{metric}_mean']:.4f}"
             if bool(row[f'{metric}_significant']):
                 value = '\\textbf{' + value + '}$^*$'
             cells.append(value)
@@ -197,7 +194,6 @@ def write_latex_table2(table: pd.DataFrame, path: Path) -> None:
         )
     lines.extend(['\\bottomrule', '\\end{tabular}'])
     path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(

@@ -1,58 +1,44 @@
 # Reproducibility
 
-The repository includes automated consistency tests and executable reproduction paths for the reported result artifacts.
-
 ## Automated tests
 
 ```bash
 pytest -q
 ```
 
-The tests cover:
+The tests cover the directed matrix convention, in-strength calculation, ASGC features and projection, metrics, synthetic frozen-result reconstruction, node-disjoint group roles, the 380-pair candidate universe, mask partitioning/nesting, protocol metadata, and paper-table values.
 
-- directed-matrix convention `A[j,i] = j -> i`;
-- in-strength calculation `c = A.T @ 1`;
-- fixed METR-LA candidate-relation support of 147 nonzero directed edges;
-- the eight ASGC calibration features;
-- Ridge calibration and feasible projection;
-- centralized edge, in-strength, weight, and signal metrics;
-- development/held-out seed separation;
-- GAT fit/validation/missing-edge partition isolation;
-- Raw-GAT/ASGC shared edge-completion evaluation;
-- synthetic scenario-level summary reconstruction;
-- frozen paper-result consistency.
-
-## Synthetic reproduction
+## Synthetic results
 
 ```bash
 python scripts/run_synthetic.py --config configs/synthetic.yaml
+python scripts/reproduce_figures.py --config configs/synthetic.yaml
 ```
 
-The script recomputes Table 1 means and sample standard deviations from `table1_per_scenario.csv`, compares them with the released summary at strict precision, and checks per-scenario Raw-GAT/ASGC missing-edge MAE equality.
+The synthetic script recomputes Table 1 summary values from released scenario-level records and verifies per-scenario Raw-GAT/ASGC missing-edge-MAE equality. The figure script regenerates Fig. 3–5 from the released synthetic source CSVs.
 
-## METR-LA development training
+## METR-LA node-disjoint experiment
+
+A full rerun requires the prepared METR-LA files described in `docs/DATA.md`:
 
 ```bash
-python scripts/run_metr_la_development.py --config configs/metr_la.yaml
+python scripts/run_metr_la_topology_disjoint.py
 ```
 
-With the listed environment and data, the development run refits the final ASGC StandardScaler/Ridge model from seeds `2027101–2027105` and checks its parameters against the released model using `rtol=5e-7` and `atol=5e-8`.
+The script rebuilds the location-only node split, trains graph-specific GATs, performs leave-one-development-graph-out Ridge regularization selection, fits the development-only calibrator, and evaluates the six node-disjoint test subsets.
 
-## METR-LA held-out replay
+Frozen paper-facing reference outputs are under `results/frozen/metr_la_topology_disjoint/`.
 
-```bash
-python scripts/evaluate_heldout_masks.py --config configs/metr_la.yaml
-```
-
-The script replays all ten held-out masks at 40% and 70% observation and compares `E_c`, `E_w`, the METR-LA temporal signal metric, and missing-edge MAE with the released per-mask CSV using `rtol=5e-7` and `atol=1e-8`; this accommodates sub-micro floating-point variation while preserving all paper-level values and significance decisions.
-
-## Paper artifacts
+## Paper tables
 
 ```bash
 python scripts/reproduce_tables.py \
     --config configs/synthetic.yaml \
     --metr-config configs/metr_la.yaml
-python scripts/reproduce_figures.py --config configs/synthetic.yaml
 ```
 
-The source-to-output mapping and hashes are recorded in `docs/RESULT_MANIFEST.md`.
+The table script reads only the released result artifacts and writes the paper-formatted Table 1 and Table 2 files under `results/reproduced/tables/`.
+
+## Provenance
+
+`docs/RESULT_MANIFEST.md` maps paper-facing tables/figures to source artifacts and SHA-256 digests. The topology-disjoint result directory also contains its own `SHA256SUMS.txt`, `protocol_manifest.json`, and `validation_audit.json`.
