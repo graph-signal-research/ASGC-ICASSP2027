@@ -32,7 +32,7 @@ Paper-facing results are traced to the released source artifacts below.
 ## METR-LA protocol/statistics artifacts
 
 - `results/frozen/metr_la_topology_disjoint/node_split.csv` - SHA-256 `e3d2b8acd4b87145330e784f016b5890a1b1cd6e3f82abeab8191941504d531b`
-- `results/frozen/metr_la_topology_disjoint/protocol_manifest.json` - SHA-256 `02cf93a55a1f3a9b7d759efd9326ebc0e8f501dfbd32a5275c35c561fd5a46d0`
+- `results/frozen/metr_la_topology_disjoint/protocol_manifest.json` - SHA-256 `364f7c30bdef4bd39ecc7ec8bfa7ebbdd788fd83920a3b68f02f9e63e4ae75ee`
 - `results/frozen/metr_la_topology_disjoint/lambda_graph_cv.csv` - SHA-256 `d27e613267870058d4265e7e7ae7b5586ddfd1fa6026ab5af0cecfdc6186e1bc`
 - `results/frozen/metr_la_topology_disjoint/development_calibrator.npz` - SHA-256 `b1be17f82e2e2a9e0366e6c039a1c6aa18f6785952f2cc4f239fb9c2d6d43269`
 - `results/frozen/metr_la_topology_disjoint/development_gat_training.csv` - SHA-256 `9e5f0aff47e3cf40dddcbec4131e932eb857e15a5686042ad9131f89929be51c`
@@ -40,8 +40,8 @@ Paper-facing results are traced to the released source artifacts below.
 - `results/frozen/metr_la_topology_disjoint/graph_cluster_bootstrap.csv` - SHA-256 `33a1e292a70039b68b6a780cb32c01e8447ac46d06821c767ae84c2a5737c9a6`
 - `results/frozen/metr_la_topology_disjoint/graph_exact_signflip.csv` - SHA-256 `1a1920e04a537938fa47864ca1e261f92c8020ca7ec82ed5ba3738695d4eedcf`
 - `results/frozen/metr_la_topology_disjoint/asgc_relative_reductions.csv` - SHA-256 `37d44883b4c9388734d113b219fab1874d4368b686854a55c02b5530057300bd`
-- `results/frozen/metr_la_topology_disjoint/validation_audit.json` - SHA-256 `89654f9dd036a826592f6d9fbbb7d47ff92ed4b634d6c1f289afa2036d1e44bc`
-- `results/frozen/metr_la_topology_disjoint/SHA256SUMS.txt` - SHA-256 `6a5bd00f7ee5a60fab79c6862447d0171b36dd5cf39111bea99d7fe33a2781a5`
+- `results/frozen/metr_la_topology_disjoint/validation_audit.json` - SHA-256 `36a7c21625806ae36339bba5c099325ac2420d3b0b56840a6cac9dba8b271046`
+- `results/frozen/metr_la_topology_disjoint/SHA256SUMS.txt` - SHA-256 `a613f265b00731fac4175375831aa698fea907bad219c7fecd783037af1a556f`
 
 The selected Ridge regularization is `lambda = 100`, chosen by leave-one-development-graph-out cross-validation. The six test subsets are node-disjoint and each has two mask repetitions at 40% and 70% observation.
 
