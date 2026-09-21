@@ -13,7 +13,7 @@ from src.utils import REPO_ROOT
 
 
 PAPER_TITLE = (
-    'Aggregation-Aware In-Strength Calibration for Information Fusion '
+    'Aggregation-Aware Strength-Guided Calibration for Information Fusion '
     'over Incomplete Directed Graphs'
 )
 

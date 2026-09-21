@@ -45,6 +45,12 @@ Paper-facing results are traced to the released source artifacts below.
 
 The selected Ridge regularization is `lambda = 100`, chosen by leave-one-development-graph-out cross-validation. The six test subsets are node-disjoint and each has two mask repetitions at 40% and 70% observation.
 
+## Fig. 2
+
+- Role: paper method overview
+- Output:
+  - `figures/fig2.pdf` - SHA-256 `694c14be8c80f2b30580394e5fdde309c2f8a6f81393a7716d57f8aaf552009c`
+
 ## Fig. 3
 
 - Generator: `scripts/reproduce_figures.py`
@@ -52,8 +58,8 @@ The selected Ridge regularization is `lambda = 100`, chosen by leave-one-develop
   - `results/frozen/synthetic/fig3_bound_data.csv` - SHA-256 `090aea604e9de1494629352c1aad5752b77b48c44886f3e4ab410de948cfef50`
   - `results/frozen/synthetic/fig3_bound_summary.csv` - SHA-256 `f64e8f9d6ffe7e4b4d3fdcd4da7fb2143d1084f91fb513ebe28e0fa271614415`
 - Outputs:
-  - `figures/fig3_bound_validation.png` - SHA-256 `995e95ae2645d80e5d3a8b3e79eecf4f7a7bb44b32a036d35e444642599a2181`
-  - `figures/fig3_bound_validation.pdf` - SHA-256 `8b8a8ee9cef3d42d569489705611a955227201c7079624c25c4d87eab4b7ee17`
+  - `figures/fig3_bound_validation.png` - SHA-256 `86e3afc61d7ff0842a2d512d8b68ffcb6fae6be98cd95ff78af89b59bca3b0c7`
+  - `figures/fig3_bound_validation.pdf` - SHA-256 `a73ea6b3bfd6f822e1b1f1749569c53d3cf2d6f6df594ad8e220d12078d7a549`
 
 ## Fig. 4
 
@@ -63,8 +69,8 @@ The selected Ridge regularization is `lambda = 100`, chosen by leave-one-develop
   - `results/frozen/synthetic/fig4_pairwise_bootstrap.csv` - SHA-256 `7430abda93802de9582315de7655d0e7b9143cf321a045745e1814d0f199a730`
   - `results/frozen/synthetic/fig4_per_graph.csv` - SHA-256 `5f96996b0f968ad3dce0f1587e55d130845746b4699439c1025cadcfd0e934a9`
 - Outputs:
-  - `figures/fig4_observation_ratio.png` - SHA-256 `aeb9e6941f64cfb4ebd66ef675faecb4da8ec3fbec632ddcc1f66ac1d8a3cf1d`
-  - `figures/fig4_observation_ratio.pdf` - SHA-256 `c7647bb9793e3274ab74436caaf263ee08b01e16e0d19e7dbacc4f3b887db400`
+  - `figures/fig4_observation_ratio.png` - SHA-256 `19a52d3d8e2eda21677d8adf3fa3f3cb685c0212b01868938da83c4fdbb90111`
+  - `figures/fig4_observation_ratio.pdf` - SHA-256 `c0261b77d0eb8e0067264d62d7f1e3665d0fb760e2b0a67845976715acd0c745`
 
 ## Fig. 5
 
@@ -72,8 +78,8 @@ The selected Ridge regularization is `lambda = 100`, chosen by leave-one-develop
 - Source:
   - `results/frozen/synthetic/fig5_heatmap_values.csv` - SHA-256 `3647875d914e608655dab9d25e7acfa64117e8985c0069ec3e4624fbdab4a4b8`
 - Outputs:
-  - `figures/fig5_missingness.png` - SHA-256 `6962a171e39cdbb31735678cb0700be1fb771d1c38432ef93c55fb3db3e7458a`
-  - `figures/fig5_missingness.pdf` - SHA-256 `ef3b5a6b3356bb588a859621cc2267437d573ebc4774c47568360f86dd16f380`
+  - `figures/fig5_missingness.png` - SHA-256 `f6b467b6eb394ed17c37cfa37a460672cc7393afed040a6777684a13d65de7cd`
+  - `figures/fig5_missingness.pdf` - SHA-256 `2c8b64e9554fc450c9923898c54b892f3ac0929f99ffd118c1ba3093a051c3b8`
 
 ## Development ablation
 

@@ -1,12 +1,12 @@
-# Aggregation-Aware In-Strength Calibration for Information Fusion over Incomplete Directed Graphs
+# Aggregation-Aware Strength-Guided Calibration for Information Fusion over Incomplete Directed Graphs
 
 Code and reproducibility artifacts for the ICASSP 2027 submission:
 
-> Anonymous authors, “Aggregation-Aware In-Strength Calibration for Information Fusion over Incomplete Directed Graphs,” under review, 2027.
+> Anonymous authors, “Aggregation-Aware Strength-Guided Calibration for Information Fusion over Incomplete Directed Graphs,” under review, 2027.
 
 ## Overview
 
-ASGC studies directed graph completion from the perspective of normalized information fusion. A GAT first estimates unobserved directed relation weights. ASGC then calibrates target-node in-strengths used by normalization while leaving the preliminary GAT edge estimates unchanged.
+Aggregation-Aware Strength-Guided Calibration (ASGC) studies directed graph completion from the perspective of normalized information fusion. A GAT first estimates unobserved directed relation weights. ASGC then calibrates target-node in-strengths used by normalization while leaving the preliminary GAT edge estimates unchanged.
 
 ```text
 partial directed graph
@@ -44,7 +44,7 @@ results/
     synthetic/            paper synthetic result artifacts
     metr_la_topology_disjoint/  paper METR-LA result artifacts
   reproduced/             regenerated paper tables and summaries
-figures/                  paper figures regenerated from synthetic artifacts
+figures/                  method overview and reproduced synthetic-result figures
 docs/                     data, protocol, reproducibility, and provenance
 data/METR-LA/             local location for user-prepared METR-LA files
 ```
@@ -53,6 +53,7 @@ data/METR-LA/             local location for user-prepared METR-LA files
 
 | Paper component | Implementation |
 |---|---|
+| Method overview figure | `figures/fig2.pdf` |
 | GAT preliminary edge completion | `src/models/gat.py` |
 | ASGC in-strength calibration | `src/models/asgc.py` |
 | METR-LA loading / graph convention | `src/data/metr_la.py` |
@@ -146,8 +147,9 @@ The experiment:
 - keeps all ten subsets mutually node-disjoint;
 - uses all 380 directed non-self candidate pairs per subset;
 - uses two deterministic mask repetitions at 40% and 70% observation;
-- trains a fresh graph-specific GAT for each graph/mask/ratio using only observed labels;
-- uses only observed positive relations for GAT message passing;
+- trains a fresh graph-specific GAT for each graph/mask/ratio, with fit-observed
+  candidates in the training loss and validation-observed candidates in the
+  validation loss; only observed positive relations are used for message passing;
 - chooses Ridge regularization by leave-one-development-graph-out validation;
 - fits the StandardScaler and Ridge calibrator exclusively on development graphs;
 - freezes the calibrator before evaluating the six test subsets;
@@ -232,7 +234,7 @@ During review, please use:
 
 ```bibtex
 @inproceedings{anonymous2027asgc,
-  title     = {Aggregation-Aware In-Strength Calibration for Information Fusion over Incomplete Directed Graphs},
+  title     = {Aggregation-Aware Strength-Guided Calibration for Information Fusion over Incomplete Directed Graphs},
   author    = {{Anonymous authors}},
   booktitle = {Proc. IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
   year      = {2027}
