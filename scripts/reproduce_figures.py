@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import csv
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -196,12 +197,19 @@ def main() -> None:
 
     config = load_config(args.config)
     source = ROOT / config["frozen_results_dir"]
-    output = ROOT / "figures"
-    output.mkdir(exist_ok=True)
+    if args.smoke_test:
+        temporary = tempfile.TemporaryDirectory(prefix="asgc-figure-smoke-")
+        output = Path(temporary.name)
+    else:
+        temporary = None
+        output = ROOT / "figures"
+        output.mkdir(exist_ok=True)
     draw_fig3(source, output)
     draw_fig4(source, output)
     draw_fig5(source, output)
     print("figure reproduction smoke test: PASS" if args.smoke_test else output)
+    if temporary is not None:
+        temporary.cleanup()
 
 
 if __name__ == "__main__":

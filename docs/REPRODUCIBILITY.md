@@ -8,6 +8,15 @@ pytest -q
 
 The tests cover the directed matrix convention, in-strength calculation, ASGC features and projection, metrics, synthetic frozen-result reconstruction, node-disjoint group roles, the 380-pair candidate universe, mask partitioning/nesting, protocol metadata, and paper-table values.
 
+Lightweight smoke checks are also available:
+
+```bash
+python scripts/reproduce_tables.py --smoke-test
+python scripts/reproduce_figures.py --config configs/synthetic.yaml --smoke-test
+```
+
+These commands use temporary output directories and do not overwrite the checked-in release artifacts.
+
 ## Synthetic results
 
 ```bash
@@ -16,6 +25,8 @@ python scripts/reproduce_figures.py --config configs/synthetic.yaml
 ```
 
 The synthetic script recomputes Table 1 summary values from released scenario-level records and verifies per-scenario Raw-GAT/ASGC missing-edge-MAE equality. The figure script regenerates Fig. 3–5 from the released synthetic source CSVs.
+
+Numerical values and physical layouts are fixed by the released data and plotting code. Binary PDF/PNG hashes may differ when operating systems resolve the configured serif-font fallback list or rendering backend differently.
 
 ## METR-LA node-disjoint experiment
 

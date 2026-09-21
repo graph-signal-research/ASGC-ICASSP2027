@@ -13,11 +13,11 @@ partial directed graph
         ↓
 GAT preliminary edge completion
         ↓
-target-specific in-strength calibration
+target-wise in-strength calibration
         ↓
 normalized aggregation weights
         ↓
-aggregated signal
+fused signal
 ```
 
 For target node `i`, the calibration feature vector is
@@ -26,7 +26,7 @@ For target node `i`, the calibration feature vector is
 [tilde_c_i, o_i, p_i, n_i^o, n_i^m, mu_i^o, mu_i^m, sigma_i^m]
 ```
 
-A Ridge model predicts the in-strength residual. The calibrated value is projected to `[o_i, o_i + n_i^m]` and normalized into aggregation weights. Raw-GAT and ASGC share exactly the same preliminary completed adjacency; ASGC changes only the downstream in-strength representation.
+Ridge regression estimates the in-strength residual. The calibrated value is projected to `[o_i, o_i + n_i^m]` and normalized into aggregation weights. Raw-GAT and ASGC use the same preliminary completed adjacency, while ASGC calibrates the downstream in-strength representation.
 
 ## Repository Structure
 
@@ -43,8 +43,8 @@ results/
   frozen/
     synthetic/            paper synthetic result artifacts
     metr_la_topology_disjoint/  paper METR-LA result artifacts
-  reproduced/             regenerated paper tables and summaries
-figures/                  method overview and reproduced synthetic-result figures
+  reproduced/             paper tables and summaries generated from stored results
+figures/                  method overview and synthetic-result figures
 docs/                     data, protocol, reproducibility, and provenance
 data/METR-LA/             local location for user-prepared METR-LA files
 ```
@@ -118,6 +118,9 @@ python scripts/reproduce_figures.py --config configs/synthetic.yaml --smoke-test
 pytest -q
 ```
 
+Smoke tests write only to temporary directories and leave the checked-in
+paper tables and figures unchanged.
+
 A full METR-LA rerun requires the prepared raw dataset:
 
 ```bash
@@ -133,7 +136,11 @@ python scripts/run_synthetic.py --config configs/synthetic.yaml
 python scripts/reproduce_figures.py --config configs/synthetic.yaml
 ```
 
-The synthetic script recomputes Table 1 summary statistics from stored per-scenario records and verifies that Raw-GAT and ASGC have identical missing-edge MAE in every scenario. Fig. 3–5 are regenerated from the released synthetic source artifacts.
+The synthetic script summarizes the stored per-scenario results and checks that Raw-GAT and ASGC have identical missing-edge MAE in every scenario. Fig. 3–5 are generated from the accompanying synthetic result files.
+
+Figure values and physical layouts are reproducible from the released data.
+Binary PDF/PNG hashes can vary across systems when the configured serif fonts
+resolve to different installed font files or rendering backends.
 
 ### Node-disjoint METR-LA
 
@@ -155,7 +162,7 @@ The experiment:
 - freezes the calibrator before evaluating the six test subsets;
 - uses the first 70% of the traffic series for node descriptors and the following 10% only for temporal fusion evaluation.
 
-Frozen paper-facing METR-LA artifacts are under `results/frozen/metr_la_topology_disjoint/`. Full details are in [`docs/TOPOLOGY_DISJOINT_METRLA.md`](docs/TOPOLOGY_DISJOINT_METRLA.md).
+The METR-LA results reported in the paper are stored under `results/frozen/metr_la_topology_disjoint/`. Full details are in [`docs/TOPOLOGY_DISJOINT_METRLA.md`](docs/TOPOLOGY_DISJOINT_METRLA.md).
 
 ### Table 1 and Table 2
 

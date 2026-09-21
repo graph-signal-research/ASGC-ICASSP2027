@@ -6,6 +6,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import argparse
+import tempfile
 
 import pandas as pd
 
@@ -206,8 +207,13 @@ def main() -> None:
 
     synthetic_config = load_config(args.config)
     metr_config = load_config(args.metr_config)
-    output = ROOT / 'results/reproduced/tables'
-    output.mkdir(parents=True, exist_ok=True)
+    if args.smoke_test:
+        temporary = tempfile.TemporaryDirectory(prefix='asgc-table-smoke-')
+        output = Path(temporary.name)
+    else:
+        temporary = None
+        output = ROOT / 'results/reproduced/tables'
+        output.mkdir(parents=True, exist_ok=True)
 
     table1 = synthetic_table(synthetic_config)
     table2 = metr_la_table(metr_config)
@@ -226,6 +232,8 @@ def main() -> None:
         print('table reproduction smoke test: PASS')
     else:
         print(output)
+    if temporary is not None:
+        temporary.cleanup()
 
 
 if __name__ == '__main__':
